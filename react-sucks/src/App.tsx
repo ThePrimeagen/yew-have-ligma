@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import './App.css'
-import createBuffer from './item/buffer';
 import Item from './item/Item';
 
 function App({
@@ -8,7 +7,6 @@ function App({
     depth,
     intervalMs
 }: {depth: number, size: number, intervalMs: number}) {
-    const buffer = createBuffer(size);
     const [renderCount, render] = useState(0);
 
     useEffect(function() {
@@ -20,12 +18,12 @@ function App({
         };
     }, [intervalMs, renderCount]);
 
-    const items = new Array(size).fill(0).map((_, i) => <Item
-        girth={69}
+    const items = new Array(32).fill(0).map((_, i) => <Item
+        girth={size}
         key={i}
         bit={i}
         depth={depth}
-        buffer={buffer} />);
+        value={renderCount} />);
 
     return (
         <>

@@ -8,7 +8,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     <App
         depth={7}
         size={69}
-        intervalMs={250}
+        intervalMs={3}
     />
   </React.StrictMode>
 )

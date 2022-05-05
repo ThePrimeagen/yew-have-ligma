@@ -6,4 +6,3 @@ pub fn random_buffer(size: usize) -> Vec<u8> {
 
     return out;
 }
-

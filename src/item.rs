@@ -6,14 +6,13 @@ use yew::{Properties, function_component, html};
 pub struct ItemProps {
     pub girth: usize,
     pub depth: usize,
-    pub buffer: Rc<Vec<u8>>,
+    pub value: u32,
     pub bit: usize,
 }
 
 fn has_background(props: &ItemProps) -> bool {
-    let offset_byte = props.bit / 8;
-    let offset_bit = 0x1 << (max(0, (props.bit % 8) - 1));
-    return props.buffer[offset_byte] & offset_bit > 0;
+    let mask = 0x1 << max(0, props.bit - 1);
+    return props.value & mask > 0;
 }
 
 fn render_inners(props: &ItemProps) -> yew::Html {
@@ -29,7 +28,7 @@ fn render_inners(props: &ItemProps) -> yew::Html {
                 girth={props.girth - 3}
                 bit={props.bit}
                 depth={props.depth - 1}
-                buffer={props.buffer.clone()} />
+                value={props.value} />
         </>
     };
 }
