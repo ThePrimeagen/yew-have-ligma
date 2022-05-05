@@ -1,0 +1,14 @@
+[package]
+name = "react-vs-wasm-yew"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+anyhow = { version = "1.0.57" }
+getrandom = { version = "0.2.6", features = ["std", "js"] }
+gloo = "0.7.0"
+rand = "0.8.5"
+styled-yew = "0.3.0"
+yew = { version = "0.19.3" }
