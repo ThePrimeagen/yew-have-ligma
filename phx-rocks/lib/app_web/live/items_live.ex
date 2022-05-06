@@ -26,7 +26,7 @@ defmodule AppWeb.ItemsLive do
   def render(assigns) do
     ~H"""
     <div style="background-color: #555; width: 100%; height: 100%; position: absolute;">
-      <%= for i <- 0..32 do %>
+      <%= for i <- 0..31 do %>
         <.item
           girth={@girth}
           depth={@depth}
