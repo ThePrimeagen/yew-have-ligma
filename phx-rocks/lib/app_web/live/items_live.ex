@@ -7,9 +7,10 @@ defmodule AppWeb.ItemsLive do
 
   @impl true
   def mount(_params, _session, socket) do
-    # Send a `:tick` message to this process at the specified interval.
-    :timer.send_interval(@interval_ms, self(), :tick)
+    # Send this process (`self`), a `:throb` message at the specified interval.
+    :timer.send_interval(@interval_ms, self(), :throb)
 
+    # This is where we assign the initial values we want to track.
     {:ok, assign(socket,
       girth: 69,
       depth: 7,
@@ -17,8 +18,12 @@ defmodule AppWeb.ItemsLive do
     )}
   end
 
+  # This is handling of an asynchronous message sent to this process from
+  # `:timer.send_interval/3`.
+  # When we update socket assigns, the client will get a message with changes in
+  # order to patch the DOM.
   @impl true
-  def handle_info(:tick, socket) do
+  def handle_info(:throb, socket) do
     {:noreply, assign(socket, :count, socket.assigns.count + 1)}
   end
 
@@ -36,6 +41,7 @@ defmodule AppWeb.ItemsLive do
     """
   end
 
+  # This is the `item` function component.
   defp item(assigns) do
     ~H"""
     <div style={"border: 1px solid #DDD;width: #{@girth}px;height: 69px;background-color: #{color(assigns)};"}>
@@ -44,6 +50,7 @@ defmodule AppWeb.ItemsLive do
     """
   end
 
+  # Recursively render the inner part of `item`, until `depth` is `0`.
   defp render_inners(%{depth: 0, bit: bit}), do: bit
 
   defp render_inners(assigns) do
