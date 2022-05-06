@@ -10,10 +10,10 @@ defmodule AppWeb.ItemsLive do
   without JavaScript up until this point to render the initial HTML with the
   components in their initial state.
 
-  After that, a websocket connection is established. and the `interval` that is
-  updating the `count` evvery 3ms will cause data representing that change to
-  be sent over the websocket to the browser/client where the DOM gets patched to
-  match the updated data using a JS library included with Phoenix Live View.
+  After that, a websocket connection is established and the `interval` that is
+  updating the `count` every 3ms will cause data representing that change to
+  be sent over the websocket to the browser/client where the DOM is then patched
+  to match the updated data using a JS library included with Phoenix Live View.
   """
   use AppWeb, :live_view
 
