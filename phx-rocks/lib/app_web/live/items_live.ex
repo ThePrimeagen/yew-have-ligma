@@ -38,9 +38,7 @@ defmodule AppWeb.ItemsLive do
 
   defp item(assigns) do
     ~H"""
-    <div
-      style={"border: 1px solid #DDD;width: #{@girth}px;height: 69px;background-color: #{color(assigns)};"}
-    >
+    <div style={"border: 1px solid #DDD;width: #{@girth}px;height: 69px;background-color: #{color(assigns)};"}>
       <%= render_inners(assigns) %>
     </div>
     """
