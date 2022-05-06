@@ -1,4 +1,20 @@
 defmodule AppWeb.ItemsLive do
+  @moduledoc """
+  All of the "work" is handled in this module.
+
+  When the page is requested, the initial page render will be server-side
+  rendered (SSR).
+
+  That means it will first call `mount/3`, assign the initial values, and then
+  call `render/1`. This will render the 32 `item` component stacks. It will work
+  without JavaScript up until this point to render the initial HTML with the
+  components in their initial state.
+
+  After that, a websocket connection is established. and the `interval` that is
+  updating the `count` evvery 3ms will cause data representing that change to
+  be sent over the websocket to the browser/client where the DOM gets patched to
+  match the updated data using a JS library included with Phoenix Live View.
+  """
   use AppWeb, :live_view
 
   import Bitwise
