@@ -87,6 +87,8 @@ ENV MIX_ENV="prod"
 # Only copy the final release from the build stage
 COPY --from=builder --chown=nobody:root /app/_build/${MIX_ENV}/rel/app ./
 
+EXPOSE 4000
+
 USER nobody
 
 CMD ["/app/bin/server"]
