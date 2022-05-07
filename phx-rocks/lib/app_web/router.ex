@@ -17,8 +17,8 @@ defmodule AppWeb.Router do
   scope "/", AppWeb do
     pipe_through :browser
 
-    get "/", ItemController, :index
-    live "/live", ItemsLive
+    get "/ssr", ItemController, :index
+    live "/", ItemsLive
   end
 
   # Other scopes may use custom stacks.
