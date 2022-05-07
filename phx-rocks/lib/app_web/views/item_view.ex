@@ -1,6 +1,8 @@
 defmodule AppWeb.ItemView do
   use AppWeb, :view
 
+  import Bitwise, only: [&&&: 2]
+
   def render("index.html", assigns) do
     ~H"""
     <%= for i <- 0..31 do %>
@@ -11,7 +13,7 @@ defmodule AppWeb.ItemView do
 
   defp render_item(assigns) do
     ~H"""
-    <div style={"border: 1px solid #DDD;width: #{@girth}px;height: 69px;background-color: #ff9500;"}>
+    <div style={"border: 1px solid #DDD;width: #{@girth}px;height: 69px;background-color: #{color(@depth)};"}>
       <%= render_inners(assigns) %>
     </div>
     """
@@ -22,5 +24,9 @@ defmodule AppWeb.ItemView do
 
   defp render_inners(assigns) do
     render_item(%{assigns | girth: assigns.girth - 3, depth: assigns.depth - 1})
+  end
+
+  defp color(depth) do
+    if (depth &&& 1) == 1, do: "#0385ff", else: "#ff9500"
   end
 end
