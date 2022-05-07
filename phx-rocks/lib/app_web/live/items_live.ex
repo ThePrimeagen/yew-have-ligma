@@ -34,9 +34,20 @@ defmodule AppWeb.ItemsLive do
   def mount(_params, _session, socket) do
     # Send this process (`self`), a `:throb` message at the specified interval.
     :timer.send_interval(@interval_ms, self(), :throb)
+    {:ok, socket}
+  end
 
-    # This is where we assign the initial values we want to track.
-    {:ok, assign(socket,
+  @impl true
+  def handle_params(%{"girth" => girth, "depth" => depth}, _uri, socket) do
+    {:noreply, assign(socket,
+      girth: String.to_integer(girth),
+      depth: String.to_integer(depth),
+      count: 0
+    )}
+  end
+
+  def handle_params(_params, _uri, socket) do
+    {:noreply, assign(socket,
       girth: 69,
       depth: 7,
       count: 0
