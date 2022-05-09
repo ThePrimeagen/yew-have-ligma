@@ -11,4 +11,8 @@ getrandom = { version = "0.2.6", features = ["std", "js"] }
 gloo = "0.7.0"
 rand = "0.8.5"
 styled-yew = "0.3.0"
-yew = { version = "0.19.3" }
+yew = { git="https://github.com/yewstack/yew", features = ["ssr", "hydration"] }
+
+[target.'cfg(target_arch = "x86_64")'.dependencies]
+tokio = { version = "1.18.2", features = ["full"] }
+actix-web = "4.0.1"

@@ -1,13 +1,9 @@
-use std::{fmt::Display, rc::Rc};
+use gloo::timers::callback::Timeout;
+use yew::{Html, function_component, html, Properties, use_state, use_effect_with_deps, UseStateHandle};
 
-use gloo::timers::callback::{Interval, Timeout};
-use styled_yew::web_sys::console;
-use yew::{function_component, html, Properties, use_state, use_effect_with_deps, UseStateHandle};
+use crate::item::Item;
 
-use crate::{item::Item, buffer::random_buffer};
-use anyhow::Result;
-
-#[derive(Properties, PartialEq)]
+#[derive(Properties, PartialEq, Debug)]
 pub struct AppProps {
     pub size: usize,
     pub depth: usize,
@@ -24,7 +20,7 @@ impl Default for AppProps {
     }
 }
 
-#[function_component(App)]
+#[function_component(ReactSucks)]
 pub fn app(props: &AppProps) -> Html {
     let render_count: UseStateHandle<u32> = use_state(|| 0);
     let interval = props.interval;
@@ -49,9 +45,9 @@ pub fn app(props: &AppProps) -> Html {
     });
 
     return html! {
-        <div style={"background-color: #555; width: 100%; height: 100%; position: absolute;"}>
+        <>
             {for items}
-        </div>
+        </>
     };
 }
 

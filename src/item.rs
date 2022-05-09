@@ -1,8 +1,6 @@
-use std::{rc::Rc, cmp::max};
+use yew::{Html, Properties, function_component, html};
 
-use yew::{Properties, function_component, html};
-
-#[derive(Properties, PartialEq)]
+#[derive(Properties, PartialEq, Debug)]
 pub struct ItemProps {
     pub girth: usize,
     pub depth: usize,
@@ -11,7 +9,7 @@ pub struct ItemProps {
 }
 
 fn has_background(props: &ItemProps) -> bool {
-    let mask = 0x1 << max(0, props.bit - 1);
+    let mask = 0x1 << props.bit.saturating_sub(1);
     return props.value & mask > 0;
 }
 
