@@ -40,7 +40,7 @@ pub fn app(props: &AppProps) -> Html {
         <Item
             girth={props.size}
             bit={i}
-            depth={7}
+            depth={props.depth}
             value={count} /> };
     });
 
