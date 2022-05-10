@@ -6,7 +6,7 @@
     "dev": "vite",
     "build": "npm run build:client && npm run build:server",
     "build:client": "tsc && vite build --outDir dist/client",
-    "build:server": "tsc && vite build --ssr src/entry-server.jsx --outDir dist/server",
+    "build:server": "tsc && vite build --ssr src/main-server.tsx --outDir dist/server",
     "preview": "vite preview"
   },
   "dependencies": {
