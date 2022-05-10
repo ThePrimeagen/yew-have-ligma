@@ -1400,6 +1400,7 @@ dependencies = [
  "actix-web",
  "anyhow",
  "clap",
+ "futures",
  "getrandom",
  "gloo",
  "rand",
