@@ -4,7 +4,6 @@
   "version": "0.0.0",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
     "build": "npm run build:client && npm run build:server",
     "build:client": "tsc && vite build --outDir dist/client",
     "build:server": "tsc && vite build --ssr src/entry-server.jsx --outDir dist/server",
