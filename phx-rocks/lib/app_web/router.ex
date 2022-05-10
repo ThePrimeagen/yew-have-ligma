@@ -17,7 +17,7 @@ defmodule AppWeb.Router do
   scope "/", AppWeb do
     pipe_through :browser
 
-    get "/ssr", ItemController, :index
+    get "/render/:depth/:girth", ItemController, :index
     live "/", ItemsLive
   end
 
