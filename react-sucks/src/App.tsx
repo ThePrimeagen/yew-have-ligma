@@ -1,3 +1,6 @@
+// TODO: I know i don't have to include them, but it seems to break on docker.
+import React from 'react';
+
 import { useEffect, useState } from 'react';
 import './App.css'
 import Item from './item/Item';

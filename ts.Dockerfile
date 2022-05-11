@@ -9,7 +9,7 @@ COPY react-sucks/testies.ts /app
 COPY react-sucks/Makefile /app
 COPY react-sucks/index.html /app
 RUN make server
+RUN make client
 RUN make testies
 ENTRYPOINT ["node"]
-CMD ["testies.js"]
-
+CMD ["testies.js", "100"]
