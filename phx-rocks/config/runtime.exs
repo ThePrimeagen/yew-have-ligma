@@ -22,8 +22,8 @@ if config_env() == :prod do
   # and it doesn't matter.
   secret_key_base = "hQKMe1BbumSASasJfByEz7EYqZcvKgykgpeKkrEErg42lKICESBF3/06Afiy271x"
 
-  host = System.get_env("PHX_HOST") || "example.com"
-  port = String.to_integer(System.get_env("PORT") || "4000")
+  host = System.get_env("PHX_HOST") || "0.0.0.0"
+  port = String.to_integer(System.get_env("PORT") || "42069")
 
   config :app, AppWeb.Endpoint,
     check_origin: false,

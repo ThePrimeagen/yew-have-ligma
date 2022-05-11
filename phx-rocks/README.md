@@ -11,14 +11,14 @@ Since it's very simple, all the work is done in this module:
   * Install dependencies with `mix deps.get`
   * Start Phoenix endpoint with `mix phx.server` or inside IEx with `iex -S mix phx.server`
 
-Now you can visit [`localhost:4000`](http://localhost:4000) from your browser.
+Now you can visit [`localhost:42069/render/{depth}/{girth}`](http://localhost:42069/7/69) from your browser.
 
 ### To start your Phoenix server (without Elixir installed):
 
   * Run `docker build -t e .`
-  * Run `docker run -p 4000:4000 e`
+  * Run `docker run -p 42069:42069 e`
 
-Now you can visit [`localhost:4000`](http://localhost:4000) from your browser.
+Now you can visit [`localhost:42069/render/{depth}/{girth}`](http://localhost:42069/7/69) from your browser.
 
 ## Explanation
 
