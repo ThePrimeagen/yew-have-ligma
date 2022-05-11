@@ -1,4 +1,5 @@
 all: client server node-server testies
+docker: server testies
 
 client:
 	npm run build:client
@@ -10,4 +11,4 @@ node-server:
 	tsc server.ts
 
 testies:
-	tsc testies.ts
+	./node_modules/.bin/tsc testies.ts
