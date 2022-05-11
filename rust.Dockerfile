@@ -9,12 +9,19 @@ RUN cargo fetch
 COPY ./src ./src
 RUN cargo build --release --bin fast-simple-testies
 RUN cargo install --path .
+RUN cargo install --locked trunk
+RUN rustup target add wasm32-unknown-unknown
+COPY ./index.html /app/index.html
+RUN trunk build --dist dist
+RUN ls -la dist
 
 FROM debian:latest
 WORKDIR /app
 RUN apt update && apt install -y ca-certificates
 COPY --from=FETCH_THE_EFFIN_RUST /usr/local/cargo/bin/fast-simple-testies /app
-CMD ["sh", "-c", "/app/fast-simple-testies", "100"]
-
-
+COPY --from=FETCH_THE_EFFIN_RUST /app/dist /app
+COPY --from=FETCH_THE_EFFIN_RUST /app/index.html /app
+RUN set -x
+RUN ls -la .
+CMD ["./fast-simple-testies", "100"]
 
