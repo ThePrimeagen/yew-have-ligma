@@ -22,7 +22,7 @@ async fn render(size: usize, depth: usize, index_file: Arc<str>) {
 
             let rendered = renderer.render().await;
 
-            let _s = index_file.replace("__REPLACE_ME__", &rendered);
+            let _s = index_file.replace("__REPLACE_ME_DADDY__", &rendered);
         })
         .await
         .unwrap()
