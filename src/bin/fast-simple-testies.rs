@@ -46,7 +46,7 @@ async fn main() {
         .expect("to work")
         .into();
 
-    for i in 2..6 {
+    for i in 2..4 {
         let count = 10_usize.pow(i);
 
         let content = render_loop(count, 20, depth, index_file.clone()).await;
