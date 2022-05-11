@@ -9,15 +9,15 @@ edition = "2021"
 anyhow = { version = "1.0.57" }
 getrandom = { version = "0.2.6", features = ["std", "js"] }
 gloo = "0.7.0"
-num_cpus = "1.13.1"
-once_cell = "1.10.0"
 rand = "0.8.5"
 styled-yew = "0.3.0"
-tikv-jemallocator = "0.4.3"
-tokio-util = { version = "0.7.1", features = ["full"] }
 yew = { git="https://github.com/yewstack/yew", features = ["ssr", "hydration"] }
 
 [target.'cfg(target_arch = "x86_64")'.dependencies]
+num_cpus = "1.13.1"
+once_cell = "1.10.0"
+tokio-util = { version = "0.7.1", features = ["full"] }
+tikv-jemallocator = "0.4.3"
 clap = { version = "3.1.17", features = ["derive"] }
 actix-files = "0.6.0"
 tokio = { version = "1.18.2", features = ["full"] }

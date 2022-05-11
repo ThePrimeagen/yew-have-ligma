@@ -16,6 +16,7 @@ async fn request(args: Arc<Args>, count: usize) {
 
 #[tokio::main]
 async fn main() {
+    /*
     let args = Arc::new(Args::parse());
     let mut handles: Vec<JoinHandle<()>> = vec![];
 
@@ -26,6 +27,7 @@ async fn main() {
         }
         futures::future::join_all(handles).await?;
     }
+    */
 }
 
 
