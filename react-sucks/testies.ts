@@ -25,8 +25,13 @@ function renderLoop(count: number, size: number, depth: number): number {
     return Date.now() - now;
 }
 
-console.log("100", renderLoop(100, 20, 2));
-console.log("1000", renderLoop(1000, 20, 2));
-console.log("10000", renderLoop(10000, 20, 2));
-console.log("100000", renderLoop(100000, 20, 2));
-console.log("1000000", renderLoop(1000000, 20, 2));
+const depth = +process.argv[2];
+if (!depth) {
+    console.error("provide a depth please ./prog <depth>");
+    process.exit(1);
+}
+console.log("100", renderLoop(100, 20, depth));
+console.log("1000", renderLoop(1000, 20, depth));
+console.log("10000", renderLoop(10000, 20, depth));
+console.log("100000", renderLoop(100000, 20, depth));
+console.log("1000000", renderLoop(1000000, 20, depth));

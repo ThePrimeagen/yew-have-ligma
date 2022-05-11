@@ -1,3 +1,4 @@
+use futures::{stream::FuturesUnordered, StreamExt};
 use react_vs_wasm_yew::app::{ReactSucks, AppProps};
 
 
@@ -13,13 +14,21 @@ async fn render(size: usize, depth: usize, index_file: &str) -> String {
 }
 async fn render_loop(count: usize, size: usize, depth: usize, index_file: &str) -> u128 {
     let now = std::time::Instant::now();
-    for _ in 0..count {
-        render(size, depth, index_file).await;
+    if true {
+        let futures: FuturesUnordered<_> = (0..count)
+            .map(|_| render(size, depth, index_file.clone()))
+            .collect();
+
+        let _: Vec<_> = futures.collect().await;
+    } else {
+        for _ in 0..count {
+            render(size, depth, index_file).await;
+        }
     }
     return now.elapsed().as_millis()
 }
 
-#[tokio::main]
+#[tokio::main(flavor = "current_thread")]
 async fn main() {
     let depth: usize = str::parse(&std::env::args().nth(1).expect("must")).expect("must");
     let index_file = std::fs::read_to_string("./dist/index.html").expect("to work");

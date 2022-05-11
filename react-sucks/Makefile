@@ -1,4 +1,4 @@
-all: client server node-server
+all: client server node-server testies
 
 client:
 	npm run build:client
@@ -9,3 +9,5 @@ server:
 node-server:
 	tsc server.ts
 
+testies:
+	tsc testies.ts
