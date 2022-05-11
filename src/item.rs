@@ -23,9 +23,9 @@ fn render_inners(props: &ItemProps) -> yew::Html {
     return html! {
         <>
             <Item
-                girth={props.girth - 3}
+                girth={props.girth.saturating_sub(3)}
                 bit={props.bit}
-                depth={props.depth - 1}
+                depth={props.depth.saturating_sub(1)}
                 value={props.value} />
         </>
     };

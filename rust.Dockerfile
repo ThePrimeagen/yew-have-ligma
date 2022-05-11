@@ -6,14 +6,14 @@ COPY ./Cargo.lock ./Cargo.lock
 COPY ./src/lib.rs ./src/lib.rs
 RUN rustup default nightly
 RUN cargo fetch
-COPY ./src ./src
-RUN cargo build --release --bin fast-simple-testies
-RUN cargo install --path .
 RUN cargo install --locked trunk
 RUN rustup target add wasm32-unknown-unknown
+
+COPY ./src ./src
 COPY ./index.html /app/index.html
 RUN trunk build --dist dist
-RUN ls -la dist
+RUN cargo build --release --bin fast-simple-testies
+RUN cargo install --path .
 
 FROM debian:latest
 WORKDIR /app
