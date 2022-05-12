@@ -27,7 +27,7 @@ async fn greet(data: web::Data<RenderingData>, depth: web::Path<(usize, usize)>)
 
     let resp = HttpResponse::Ok()
         .content_type("text/html")
-        .insert_header(("time-taken", now.elapsed().as_millis().to_string()))
+        .insert_header(("time-taken", now.elapsed().as_micros().to_string()))
         .body(rendered);
 
     println!("finished request: {}", total_requests);

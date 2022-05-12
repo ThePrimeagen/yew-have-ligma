@@ -1,4 +1,4 @@
-use std::{sync::{Arc, atomic::{AtomicUsize, Ordering}}, time::Duration};
+use std::{sync::{Arc, atomic::{AtomicUsize, Ordering}}, time::{Duration, Instant}};
 
 use clap::Parser;
 use ::futures::{stream::FuturesUnordered, StreamExt};
@@ -122,6 +122,7 @@ async fn main() {
         error: AtomicUsize::new(0),
         success: AtomicUsize::new(0),
     });
+    let now = Instant::now();
 
     let inner_testing = testing.clone();
     futures::future::join_all((0..args.threads)
@@ -129,9 +130,16 @@ async fn main() {
             return tokio::spawn(request_loop(args.clone(), count, inner_testing.clone()));
         })).await;
 
-    println!("stats {},{}",
-        testing.success.load(Ordering::Relaxed),
-        testing.error.load(Ordering::Relaxed));
+    let duration = now.elapsed().as_secs() as usize;
+    let success = testing.success.load(Ordering::Relaxed);
+    let error = testing.error.load(Ordering::Relaxed);
+    println!("success {},{}",
+        success,
+        success / duration);
+
+    println!("error {},{}",
+        error,
+        error / duration);
 }
 
 

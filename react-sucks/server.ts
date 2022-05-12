@@ -22,8 +22,14 @@ const index = fs.
         path.join(__dirname, "dist", "client", "index.html")
     ).toString();
 
+
+function getMicroTime(): number {
+    var hrTime = process.hrtime()
+    return hrTime[0] * 1000000 + hrTime[1] / 1000;
+}
+
 app.use("/:size/:depth", function(req, res) {
-    const now = Date.now();
+    const now = getMicroTime();
     const size = +req.params.size;
     const depth = +req.params.depth;
 
@@ -31,7 +37,7 @@ app.use("/:size/:depth", function(req, res) {
     // will be banned
     const html = index.replace("__REPLACE_ME_DADDY__", serverMain(size, depth));
     res.
-        setHeader("time-taken", Date.now() - now).
+        setHeader("time-taken", getMicroTime() - now).
         status(200).
         set({"Content-Type": "text/html"}).end(html)
 });
