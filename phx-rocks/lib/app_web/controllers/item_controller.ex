@@ -2,9 +2,14 @@ defmodule AppWeb.ItemController do
   use AppWeb, :controller
 
   def index(conn, %{"depth" => depth, "girth" => girth}) do
-    render(conn, "index.html",
-      girth: String.to_integer(girth),
-      depth: String.to_integer(depth)
-    )
+    {usec, rendered} =
+      :timer.tc(Phoenix.View, :render_to_string, [AppWeb.ItemView, "index.html", [
+        girth: String.to_integer(girth),
+        depth: String.to_integer(depth)
+      ]])
+
+    conn
+    |> put_resp_header("time-taken", Integer.to_string(usec))
+    |> html(rendered)
   end
 end
