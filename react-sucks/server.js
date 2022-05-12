@@ -16,7 +16,7 @@ var index = fs.
     readFileSync(path.join(__dirname, "dist", "client", "index.html")).toString();
 function getMicroTime() {
     var hrTime = process.hrtime();
-    return hrTime[0] * 1000000 + hrTime[1] / 1000;
+    return Math.round(hrTime[0] * 1000000 + hrTime[1] / 1000);
 }
 app.use("/:size/:depth", function (req, res) {
     var now = getMicroTime();
