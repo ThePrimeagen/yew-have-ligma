@@ -1,4 +1,4 @@
-use std::{sync::atomic::{AtomicUsize, Ordering}, time::Instant};
+use std::time::Instant;
 
 use actix_files::Files;
 use clap::Parser;
@@ -10,8 +10,6 @@ static GLOBAL: tikv_jemallocator::Jemalloc = tikv_jemallocator::Jemalloc;
 
 #[get("/render/{depth}/{girth}")]
 async fn greet(data: web::Data<RenderingData>, depth: web::Path<(usize, usize)>) -> impl Responder {
-    let total_requests = data.request_total.fetch_add(1, Ordering::Relaxed) + 1;
-    println!("starting request: {}", total_requests);
     let now = Instant::now();
     let d = depth.0;
     let g = depth.1;
@@ -30,7 +28,6 @@ async fn greet(data: web::Data<RenderingData>, depth: web::Path<(usize, usize)>)
         .insert_header(("time-taken", now.elapsed().as_micros().to_string()))
         .body(rendered);
 
-    println!("finished request: {}", total_requests);
     return resp;
 }
 
@@ -42,7 +39,6 @@ struct Args {
 
 struct RenderingData {
     index_file: String,
-    request_total: AtomicUsize,
 }
 
 #[actix_web::main] // or #[tokio::main]
@@ -56,9 +52,9 @@ async fn main() -> std::io::Result<()> {
 
     let data = web::Data::new(RenderingData {
         index_file,
-        request_total: AtomicUsize::new(0),
     });
 
+    println!("workers {}", workers);
     HttpServer::new(move || {
         App::new()
             .app_data(data.clone())

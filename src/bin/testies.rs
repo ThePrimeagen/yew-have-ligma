@@ -43,7 +43,7 @@ struct Testing {
 }
 
 async fn request(args: Arc<Args>) -> Result<String, ()> {
-    let handle = LOCAL_POOL
+    let handle = match LOCAL_POOL
         .spawn_pinned(move || async move {
 
             let address = format!("http://{}:{}/render/{}/{}", args.address, args.port, args.depth, args.girth);
@@ -69,7 +69,12 @@ async fn request(args: Arc<Args>) -> Result<String, ()> {
             };
 
             return Ok(time_taken);
-        }).await.unwrap();
+        }).await {
+            Ok(t) => t,
+            Err(_) => {
+                return Err(())
+            }
+        };
 
     return handle;
 }
