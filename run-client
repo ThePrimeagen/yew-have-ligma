@@ -1,0 +1,5 @@
+#/usr/bin/env zsh
+
+cargo run --release --bin testies -- --address 74.207.235.222 --depth $2 --girth 1000 --count $3 -t 8 -m $4 | tee $1.$2.$3.$4
+scp root@74.207.235.222:/root/mem.out $1.$2.$3.$4.mem
+

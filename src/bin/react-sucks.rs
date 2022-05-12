@@ -48,6 +48,7 @@ struct RenderingData {
 #[actix_web::main] // or #[tokio::main]
 async fn main() -> std::io::Result<()> {
     let args = Args::parse();
+    let workers: usize = str::parse(&std::env::var("WORKERS").unwrap_or("1".to_string())).unwrap_or(1);
     let index_file: Vec<u8> = std::fs::read(args.index_file)?;
     let index_file: String = std::str::from_utf8(&index_file)
         .expect("expected utf8 index file")
@@ -64,7 +65,7 @@ async fn main() -> std::io::Result<()> {
             .service(greet)
             .service(Files::new("/", "./dist"))
     })
-    .workers(num_cpus::get())
+    .workers(num_cpus::get() * workers)
     .bind(("0.0.0.0", 42069))?
     .run()
     .await
