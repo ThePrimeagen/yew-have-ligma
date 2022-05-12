@@ -25,7 +25,7 @@ const index = fs.
 
 function getMicroTime(): number {
     var hrTime = process.hrtime()
-    return hrTime[0] * 1000000 + hrTime[1] / 1000;
+    return Math.round(hrTime[0] * 1000000 + hrTime[1] / 1000);
 }
 
 app.use("/:size/:depth", function(req, res) {

@@ -14,14 +14,22 @@ app.use(require('serve-static')(resolve('dist/client'), {
 }));
 var index = fs.
     readFileSync(path.join(__dirname, "dist", "client", "index.html")).toString();
+function getMicroTime() {
+    var hrTime = process.hrtime();
+    return hrTime[0] * 1000000 + hrTime[1] / 1000;
+}
 app.use("/:size/:depth", function (req, res) {
+    var now = getMicroTime();
     var size = +req.params.size;
     var depth = +req.params.depth;
     // @ts-ignore this ignore is for champions and anyone who says differently
     // will be banned
     var html = index.replace("__REPLACE_ME_DADDY__", (0, main_server_1["default"])(size, depth));
-    res.status(200).set({ "Content-Type": "text/html" }).end(html);
+    res.
+        setHeader("time-taken", getMicroTime() - now).
+        status(200).
+        set({ "Content-Type": "text/html" }).end(html);
 });
-app.listen(42068, function () {
-    console.log('http://localhost:42068');
+app.listen(42069, function () {
+    console.log('http://localhost:42069');
 });
