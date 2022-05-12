@@ -9,7 +9,7 @@ use serde::Deserialize;
 #[global_allocator]
 static GLOBAL: tikv_jemallocator::Jemalloc = tikv_jemallocator::Jemalloc;
 
-static LOCAL_POOL: Lazy<LocalPoolHandle> = Lazy::new(|| LocalPoolHandle::new(8));
+static LOCAL_POOL: Lazy<LocalPoolHandle> = Lazy::new(|| LocalPoolHandle::new(num_cpus::get() * 2));
 
 #[derive(Parser)]
 #[clap()]
@@ -20,7 +20,7 @@ struct Args {
     #[clap(short = 'g', long = "girth", default_value= "69")]
     girth: usize,
 
-    #[clap(short = 'c', long = "clap", default_value= "1000")]
+    #[clap(short = 'c', long = "count", default_value= "1000")]
     count: usize,
 
     #[clap(short = 'a', long = "address", default_value= "0.0.0.0")]
@@ -31,6 +31,9 @@ struct Args {
 
     #[clap(short = 'r', long = "request-spacing", default_value = "5")]
     request_spacing: usize,
+
+    #[clap(short = 't', long = "threads", default_value = "8")]
+    threads: usize,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -71,10 +74,14 @@ async fn request_loop(args: Arc<Args>, count: usize) {
 #[tokio::main]
 async fn main() {
     let args = Arc::new(Args::parse());
-    let count = args.count / 8;
+    let count = args.count / args.threads;
 
-    futures::future::join_all((0..8)
+    futures::future::join_all((0..args.threads)
         .map(|_| tokio::spawn(request_loop(args.clone(), count)))).await;
+        /*
+    futures::future::join_all((0..1)
+        .map(|_| tokio::spawn(request_loop(args.clone(), args.count)))).await;
+        */
 }
 
 

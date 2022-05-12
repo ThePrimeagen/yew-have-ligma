@@ -51,6 +51,10 @@ async fn main() -> std::io::Result<()> {
             .service(greet)
             .service(Files::new("/", "./dist"))
     })
+    .max_connection_rate(10000)
+    .worker_max_blocking_threads(10000)
+    .max_connections(10000)
+    .workers(num_cpus::get() * 2)
     .bind(("0.0.0.0", 42069))?
     .run()
     .await

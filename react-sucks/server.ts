@@ -32,6 +32,6 @@ app.use("/:size/:depth", function(req, res) {
     res.status(200).set({"Content-Type": "text/html"}).end(html)
 });
 
-app.listen(42068, () => {
-    console.log('http://localhost:42068')
+app.listen(42069, () => {
+    console.log('http://localhost:42069')
 })
