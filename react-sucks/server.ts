@@ -23,13 +23,17 @@ const index = fs.
     ).toString();
 
 app.use("/:size/:depth", function(req, res) {
+    const now = Date.now();
     const size = +req.params.size;
     const depth = +req.params.depth;
 
     // @ts-ignore this ignore is for champions and anyone who says differently
     // will be banned
     const html = index.replace("__REPLACE_ME_DADDY__", serverMain(size, depth));
-    res.status(200).set({"Content-Type": "text/html"}).end(html)
+    res.
+        setHeader("time-taken", Date.now() - now).
+        status(200).
+        set({"Content-Type": "text/html"}).end(html)
 });
 
 app.listen(42069, () => {
