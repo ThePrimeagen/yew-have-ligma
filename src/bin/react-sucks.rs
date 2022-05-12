@@ -1,10 +1,18 @@
+use std::{sync::atomic::{AtomicUsize, Ordering}, time::Instant};
+
 use actix_files::Files;
 use clap::Parser;
 use react_vs_wasm_yew::app::{ReactSucks, AppProps};
 use actix_web::{get, web, App, HttpServer, Responder, HttpResponse};
 
+#[global_allocator]
+static GLOBAL: tikv_jemallocator::Jemalloc = tikv_jemallocator::Jemalloc;
+
 #[get("/render/{depth}/{girth}")]
 async fn greet(data: web::Data<RenderingData>, depth: web::Path<(usize, usize)>) -> impl Responder {
+    let total_requests = data.request_total.fetch_add(1, Ordering::Relaxed) + 1;
+    println!("starting request: {}", total_requests);
+    let now = Instant::now();
     let d = depth.0;
     let g = depth.1;
 
@@ -17,9 +25,13 @@ async fn greet(data: web::Data<RenderingData>, depth: web::Path<(usize, usize)>)
     let rendered = renderer.render().await;
     let rendered = data.index_file.replace("__REPLACE_ME_DADDY__", &rendered);
 
-    return HttpResponse::Ok()
+    let resp = HttpResponse::Ok()
         .content_type("text/html")
+        .insert_header(("time-taken", now.elapsed().as_millis().to_string()))
         .body(rendered);
+
+    println!("finished request: {}", total_requests);
+    return resp;
 }
 
 #[derive(Parser)]
@@ -28,9 +40,9 @@ struct Args {
     index_file: String
 }
 
-#[derive(Clone)]
 struct RenderingData {
-    index_file: String
+    index_file: String,
+    request_total: AtomicUsize,
 }
 
 #[actix_web::main] // or #[tokio::main]
@@ -43,6 +55,7 @@ async fn main() -> std::io::Result<()> {
 
     let data = web::Data::new(RenderingData {
         index_file,
+        request_total: AtomicUsize::new(0),
     });
 
     HttpServer::new(move || {
@@ -51,10 +64,7 @@ async fn main() -> std::io::Result<()> {
             .service(greet)
             .service(Files::new("/", "./dist"))
     })
-    .max_connection_rate(10000)
-    .worker_max_blocking_threads(10000)
-    .max_connections(10000)
-    .workers(num_cpus::get() * 2)
+    .workers(num_cpus::get())
     .bind(("0.0.0.0", 42069))?
     .run()
     .await

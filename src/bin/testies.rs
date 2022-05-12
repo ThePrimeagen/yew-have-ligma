@@ -1,10 +1,9 @@
-use std::{sync::Arc, time::Duration};
+use std::{sync::{Arc, atomic::{AtomicUsize, Ordering}}, time::Duration};
 
 use clap::Parser;
 use ::futures::{stream::FuturesUnordered, StreamExt};
 use once_cell::sync::Lazy;
 use tokio_util::task::LocalPoolHandle;
-use serde::Deserialize;
 
 #[global_allocator]
 static GLOBAL: tikv_jemallocator::Jemalloc = tikv_jemallocator::Jemalloc;
@@ -29,59 +28,110 @@ struct Args {
     #[clap(short = 'p', long = "port", default_value = "42069")]
     port: u16,
 
-    #[clap(short = 'r', long = "request-spacing", default_value = "5")]
-    request_spacing: usize,
-
     #[clap(short = 't', long = "threads", default_value = "8")]
     threads: usize,
+
+    #[clap(short = 'm', long = "max_conn", default_value = "100")]
+    max_conn: usize,
 }
 
-#[derive(Debug, Clone, Deserialize)]
-struct Response {
+#[derive(Debug)]
+struct Testing {
+    current: AtomicUsize,
+    error: AtomicUsize,
+    success: AtomicUsize,
 }
 
-async fn request(args: Arc<Args>, position: usize) {
-    LOCAL_POOL
+async fn request(args: Arc<Args>) -> Result<String, ()> {
+    let handle = LOCAL_POOL
         .spawn_pinned(move || async move {
-            let sleep_duration = (position * args.request_spacing) as u64;
-            tokio::time::sleep(Duration::from_millis(sleep_duration)).await;
 
             let address = format!("http://{}:{}/render/{}/{}", args.address, args.port, args.depth, args.girth);
 
-            match reqwest::get(address)
-                .await
-                .unwrap()
-                .text()
-                .await {
-                Ok(_) => { },
-                Err(err) => {
-                    eprintln!("{:?}", err);
-                }
-            }
+            let result = match reqwest::get(address).await {
+                Ok(r) => r,
+                Err(_) => {
+                    return Err(())
+                },
+            };
 
+            let headers = result.headers();
+            let time_taken: String = match headers["time-taken"].to_str() {
+                Ok(t) => t,
+                _ => "-1",
+            }.to_string();
+
+            match result.text().await {
+                Ok(_) => {},
+                Err(_) => {
+                    return Err(())
+                },
+            };
+
+            return Ok(time_taken);
         }).await.unwrap();
+
+    return handle;
 }
 
-async fn request_loop(args: Arc<Args>, count: usize) {
+async fn wait_for_availabilities(args: &Arc<Args>, testing: Arc<Testing>) {
+    while testing.current.load(Ordering::Relaxed) > args.max_conn {
+        tokio::time::sleep(Duration::from_millis(5)).await;
+    }
+}
+
+async fn request_inner_loop(args: Arc<Args>, testing: Arc<Testing>) -> String {
+    wait_for_availabilities(&args, testing.clone()).await;
+
+    testing.current.fetch_add(1, Ordering::Relaxed);
+    let time_taken: String;
+
+    loop {
+        match request(args.clone()).await {
+            Ok(tt) => {
+                time_taken = tt;
+                testing.success.fetch_add(1, Ordering::Relaxed);
+                break;
+            },
+            _ => {
+                testing.error.fetch_add(1, Ordering::Relaxed);
+            }
+        }
+    }
+
+    testing.current.fetch_sub(1, Ordering::Relaxed);
+    return time_taken;
+}
+
+async fn request_loop(args: Arc<Args>, count: usize, testing: Arc<Testing>) {
     let futures: FuturesUnordered<_> = (0..count)
-        .enumerate()
-        .map(|(i, _)| request(args.clone(), i))
+        .map(|_| request_inner_loop(args.clone(), testing.clone()))
         .collect();
 
-    let _: Vec<_> = futures.collect().await;
+    let timings: Vec<String> = futures.collect().await;
+
+    println!("timing {}", timings.join(","));
 }
 
 #[tokio::main]
 async fn main() {
     let args = Arc::new(Args::parse());
     let count = args.count / args.threads;
+    let testing = Arc::new(Testing {
+        current: AtomicUsize::new(0),
+        error: AtomicUsize::new(0),
+        success: AtomicUsize::new(0),
+    });
 
+    let inner_testing = testing.clone();
     futures::future::join_all((0..args.threads)
-        .map(|_| tokio::spawn(request_loop(args.clone(), count)))).await;
-        /*
-    futures::future::join_all((0..1)
-        .map(|_| tokio::spawn(request_loop(args.clone(), args.count)))).await;
-        */
+        .map(move |_| {
+            return tokio::spawn(request_loop(args.clone(), count, inner_testing.clone()));
+        })).await;
+
+    println!("stats {},{}",
+        testing.success.load(Ordering::Relaxed),
+        testing.error.load(Ordering::Relaxed));
 }
 
 
