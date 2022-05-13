@@ -14,6 +14,7 @@ reqwest = { version = "0.11.10", features = ["json"] }
 serde = { version = "1.0.137", features = ["derive"] }
 serde_json = "1.0.81"
 styled-yew = "0.3.0"
+walkdir = "2.3.2"
 yew = { git="https://github.com/yewstack/yew", features = ["ssr", "hydration"] }
 
 [target.'cfg(target_arch = "x86_64")'.dependencies]

@@ -1,10 +1,16 @@
 #!/usr/bin/env zsh
 
+ip="139.144.35.21";
+if [[ ! -z $IP ]]; then
+    ip=$IP
+fi
+echo "Using $ip"
 ulimit -n 10000
-max_conn=("20" "50" "100" "200" "500" "1000")
+# max_conn=("20" "50" "100" "200" "500" "1000")
+max_conn=("200" "500" "1000" "2500")
 for conn in $max_conn; do
     echo "running $conn"
-    cargo run --release --bin testies -- --address 74.207.235.222 --depth $2 --girth 1000 --count $3 -t 8 -m $conn > $1.$2.$3.$conn$4
+    cargo run --release --bin testies -- --address $ip --depth $2 --girth 1000 --count $3 -t 8 -m $conn > $1.$2.$3.$conn$4
 done
-scp root@74.207.235.222:/root/mem.out $1.$2.$3$4.mem
+scp root@$ip:/root/mem.out $1.$2.$3$4.mem
 

@@ -95,11 +95,15 @@ async fn request_inner_loop(args: Arc<Args>, testing: Arc<Testing>) -> String {
         match request(args.clone()).await {
             Ok(tt) => {
                 time_taken = tt;
-                testing.success.fetch_add(1, Ordering::Relaxed);
+                let success = testing.success.fetch_add(1, Ordering::Relaxed) + 1;
+                println!("finished {} requests", success);
+                if success % 100 == 0 {
+                }
                 break;
             },
             _ => {
-                testing.error.fetch_add(1, Ordering::Relaxed);
+                let error = testing.error.fetch_add(1, Ordering::Relaxed) + 1;
+                println!("error {} requests", error);
             }
         }
     }
