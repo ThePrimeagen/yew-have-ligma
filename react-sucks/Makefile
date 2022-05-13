@@ -8,7 +8,7 @@ server:
 	npm run build:server
 
 node-server:
-	tsc server.ts
+	./node_modules/.bin/tsc server.ts
 
 testies:
 	./node_modules/.bin/tsc testies.ts

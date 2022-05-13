@@ -10,6 +10,6 @@ COPY react-sucks/Makefile /app
 COPY react-sucks/index.html /app
 RUN make server
 RUN make client
-RUN make testies
+RUN make node-server
 ENTRYPOINT ["node"]
-CMD ["testies.js", "100"]
+CMD ["server.js", "index.html"]
