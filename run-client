@@ -1,4 +1,4 @@
-#!/usr/bin/env zsh
+#!/usr/bin/env bash
 
 ip="139.144.35.21";
 if [[ ! -z $IP ]]; then
