@@ -4,13 +4,34 @@ ip="139.144.35.21";
 if [[ ! -z $IP ]]; then
     ip=$IP
 fi
-echo "Using $ip"
+
+file=$1
+if [[ ! -z $FILE ]]; then
+    file=$FILE
+fi
+
+depth=$2
+if [[ ! -z $DEPTH ]]; then
+    depth=$DEPTH
+fi
+
+count=$3
+if [[ ! -z $COUNT ]]; then
+    count=$COUNT
+fi
+
+threads=16
+if [[ ! -z $THREADS ]]; then
+    threads=$THREADS
+fi
+
+echo "Using $ip $file $depth $count"
 ulimit -n 10000
 # max_conn=("20" "50" "100" "200" "500" "1000")
-max_conn=("16" "50" "100")
+max_conn=("50" "100" "150" "175")
 for conn in $max_conn; do
     echo "running $conn"
-    cargo run --release --bin testies -- --address $ip --depth $2 --girth 1000 --count $3 -t 16 -m $conn > $1.$2.$3.$conn$4
+    cargo run --release --bin testies -- --address $ip --depth $depth --girth 1000 --count $count -t $threads -m $conn > $file.$depth.$count.$conn
 done
-# scp root@$ip:/root/mem.out $1.$2.$3$4.mem
+scp root@$ip:/root/mem.out $file.$depth.$count.mem
 
