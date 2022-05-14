@@ -46,6 +46,11 @@ async fn request(args: Arc<Args>) -> Result<String, ()> {
     let handle = match LOCAL_POOL
         .spawn_pinned(move || async move {
 
+            let now = std::time::SystemTime::now().duration_since(std::time::SystemTime::UNIX_EPOCH).unwrap().as_micros();
+            if now % 2 == 0 {
+                tokio::time::sleep(Duration::from_millis(1)).await;
+            }
+
             let address = format!("http://{}:{}/render/{}/{}", args.address, args.port, args.depth, args.girth);
 
             let result = match reqwest::get(address).await {
@@ -95,15 +100,11 @@ async fn request_inner_loop(args: Arc<Args>, testing: Arc<Testing>) -> String {
         match request(args.clone()).await {
             Ok(tt) => {
                 time_taken = tt;
-                let success = testing.success.fetch_add(1, Ordering::Relaxed) + 1;
-                println!("finished {} requests", success);
-                if success % 100 == 0 {
-                }
+                testing.success.fetch_add(1, Ordering::Relaxed);
                 break;
             },
             _ => {
-                let error = testing.error.fetch_add(1, Ordering::Relaxed) + 1;
-                println!("error {} requests", error);
+                testing.error.fetch_add(1, Ordering::Relaxed);
             }
         }
     }

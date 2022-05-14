@@ -9,12 +9,14 @@ edition = "2021"
 anyhow = { version = "1.0.57" }
 getrandom = { version = "0.2.6", features = ["std", "js"] }
 gloo = "0.7.0"
+hyper = { version = "0.14.18", features = ["full"] }
 rand = "0.8.5"
 reqwest = { version = "0.11.10", features = ["json"] }
 serde = { version = "1.0.137", features = ["derive"] }
 serde_json = "1.0.81"
 styled-yew = "0.3.0"
 walkdir = "2.3.2"
+warp = "0.3.2"
 yew = { git="https://github.com/yewstack/yew", features = ["ssr", "hydration"] }
 
 [target.'cfg(target_arch = "x86_64")'.dependencies]
