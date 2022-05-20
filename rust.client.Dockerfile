@@ -9,5 +9,10 @@ RUN cargo fetch
 
 COPY ./src /app/src
 RUN cargo build --release --bin testies
-COPY ./run-client /app
-CMD ["./run-client"]
+
+FROM debian:latest
+WORKDIR /app
+RUN apt update && apt install -y ca-certificates
+COPY --from=FETCH_THE_EFFIN_RUST /app/target/release/testies /app
+COPY ./run-client2 /app
+CMD ["./run-client2"]

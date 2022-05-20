@@ -23,10 +23,11 @@ fi
 echo "Using $ip $file $depth $count"
 ulimit -n 10000
 # max_conn=("20" "50" "100" "200" "500" "1000")
-max_conn=("50" "100" "150" "175")
-for conn in $max_conn; do
+max_conn=("50" "100" "200" "500")
+for conn in ${max_conn[@]}; do
     echo "running $conn"
-    cargo run --release --bin testies -- --address $ip --depth $depth --girth 1000 --count $count -m $conn > $file.$depth.$count.$conn
+    ./testies --address $ip --depth $depth --girth 1000 --count $count -m $conn > $file.$depth.$count.$conn
 done
 scp root@$ip:/root/mem.out $file.$depth.$count.mem
+
 

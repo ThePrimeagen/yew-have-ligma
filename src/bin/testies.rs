@@ -1,17 +1,12 @@
-use std::{sync::{Arc, atomic::{AtomicUsize, Ordering}}, time::{Duration, Instant}};
-
 use clap::Parser;
-use ::futures::{stream::FuturesUnordered, StreamExt};
-use once_cell::sync::Lazy;
-use tokio_util::task::LocalPoolHandle;
-
-#[global_allocator]
-static GLOBAL: tikv_jemallocator::Jemalloc = tikv_jemallocator::Jemalloc;
-
-static LOCAL_POOL: Lazy<LocalPoolHandle> = Lazy::new(|| LocalPoolHandle::new(num_cpus::get() * 2));
+use reqwest::Client;
+use std::{sync::{
+    atomic::{AtomicUsize, Ordering},
+    Arc,
+}, time::Duration};
+use tokio::{sync::Semaphore, time::Instant};
 
 #[derive(Parser)]
-#[clap()]
 struct Args {
     #[clap(short = 'd', long = "depth", default_value= "3")]
     depth: usize,
@@ -28,128 +23,79 @@ struct Args {
     #[clap(short = 'p', long = "port", default_value = "42069")]
     port: u16,
 
-    #[clap(short = 't', long = "threads", default_value = "8")]
-    threads: usize,
-
     #[clap(short = 'm', long = "max_conn", default_value = "100")]
     max_conn: usize,
 }
 
-#[derive(Debug)]
-struct Testing {
-    current: AtomicUsize,
+#[derive(Default)]
+struct Stats {
     error: AtomicUsize,
     success: AtomicUsize,
+    total_time_taken: AtomicUsize,
 }
 
-async fn request(args: Arc<Args>) -> Result<String, ()> {
-    let handle = match LOCAL_POOL
-        .spawn_pinned(move || async move {
-
-            let now = std::time::SystemTime::now().duration_since(std::time::SystemTime::UNIX_EPOCH).unwrap().as_micros();
-            if now % 2 == 0 {
-                tokio::time::sleep(Duration::from_millis(1)).await;
-            }
-
-            let address = format!("http://{}:{}/render/{}/{}", args.address, args.port, args.depth, args.girth);
-
-            let result = match reqwest::get(address).await {
-                Ok(r) => r,
-                Err(_) => {
-                    return Err(())
-                },
-            };
-
-            let headers = result.headers();
-            let time_taken: String = match headers["time-taken"].to_str() {
-                Ok(t) => t,
-                _ => "-1",
-            }.to_string();
-
-            match result.text().await {
-                Ok(_) => {},
-                Err(_) => {
-                    return Err(())
-                },
-            };
-
-            return Ok(time_taken);
-        }).await {
-            Ok(t) => t,
-            Err(_) => {
-                return Err(())
-            }
-        };
-
-    return handle;
-}
-
-async fn wait_for_availabilities(args: &Arc<Args>, testing: Arc<Testing>) {
-    while testing.current.load(Ordering::Relaxed) > args.max_conn {
-        tokio::time::sleep(Duration::from_millis(5)).await;
-    }
-}
-
-async fn request_inner_loop(args: Arc<Args>, testing: Arc<Testing>) -> String {
-    wait_for_availabilities(&args, testing.clone()).await;
-
-    testing.current.fetch_add(1, Ordering::Relaxed);
-    let time_taken: String;
-
-    loop {
-        match request(args.clone()).await {
-            Ok(tt) => {
-                time_taken = tt;
-                testing.success.fetch_add(1, Ordering::Relaxed);
-                break;
-            },
-            _ => {
-                testing.error.fetch_add(1, Ordering::Relaxed);
-            }
+async fn send_request(client: Client, url: &str, stats: &Stats) {
+    let resp = match reqwest::get(url).await {
+        Ok(r) => r,
+        Err(_) => {
+            stats.error.fetch_add(1, Ordering::Relaxed);
+            return;
         }
+    };
+
+    let headers = resp.headers();
+    let time_taken = headers.get("time-taken");
+
+    if time_taken.is_none() {
+        return;
     }
 
-    testing.current.fetch_sub(1, Ordering::Relaxed);
-    return time_taken;
-}
+    let time_taken = time_taken.unwrap().to_str().map(|x| {
+        return str::parse::<usize>(x).unwrap_or(0);
+    }).unwrap_or(0);
 
-async fn request_loop(args: Arc<Args>, count: usize, testing: Arc<Testing>) {
-    let futures: FuturesUnordered<_> = (0..count)
-        .map(|_| request_inner_loop(args.clone(), testing.clone()))
-        .collect();
-
-    let timings: Vec<String> = futures.collect().await;
-
-    println!("timing {}", timings.join(","));
+    stats.success.fetch_add(1, Ordering::Relaxed);
+    stats.total_time_taken.fetch_add(time_taken, Ordering::Relaxed);
 }
 
 #[tokio::main]
 async fn main() {
-    let args = Arc::new(Args::parse());
-    let count = args.count / args.threads;
-    let testing = Arc::new(Testing {
-        current: AtomicUsize::new(0),
-        error: AtomicUsize::new(0),
-        success: AtomicUsize::new(0),
-    });
+    let args = Args::parse();
+    let client = Client::new();
+    let stats = Arc::new(Stats::default());
+
+    let semaphore = Arc::new(Semaphore::new(args.max_conn));
+
+    let url = Arc::new(format!("http://{}:{}/render/{}/{}", args.address, args.port, args.depth, args.girth));
+    let mut handles = vec![];
+
     let now = Instant::now();
+    for _ in 0..args.count {
+        let permit = semaphore.clone().acquire_owned().await.unwrap();
+        let client = client.clone();
+        let stats = stats.clone();
+        let url = url.clone();
 
-    let inner_testing = testing.clone();
-    futures::future::join_all((0..args.threads)
-        .map(move |_| {
-            return tokio::spawn(request_loop(args.clone(), count, inner_testing.clone()));
-        })).await;
+        handles.push(tokio::spawn(async move {
+            send_request(client, &url, &stats).await;
+            drop(permit);
+        }));
+    }
 
-    let duration = now.elapsed().as_secs() as usize;
-    let success = testing.success.load(Ordering::Relaxed);
-    let error = testing.error.load(Ordering::Relaxed);
-    println!("success {},{}",
-        success,
-        success / duration);
+    tokio::spawn(async move {
+        while semaphore.available_permits() != args.max_conn {
+            tokio::time::sleep(Duration::from_millis(100)).await;
+        }
+    }).await.unwrap_or(());
 
-    println!("error {},{}",
-        error,
-        error / duration);
+    let total_time = now.elapsed().as_secs();
+    let success = stats.success.load(Ordering::Relaxed);
+    let error = stats.error.load(Ordering::Relaxed);
+
+    println!("total_time: {} success {} errors {}", total_time, success, error);
+    let rps = args.count as u64 / total_time;
+    let average_ssr = stats.total_time_taken.load(Ordering::Relaxed) / success;
+
+    println!("rps: {}, average_ssr: {}", rps, average_ssr);
 }
-
 
